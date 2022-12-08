@@ -21,11 +21,4 @@
 	<ActiveMobileDevice>
 		<NoProfile iOSSimulator="iPhone5"/>
 	</ActiveMobileDevice>
-	<ProjectSortOrder AutoSort="0" SortType="0">
-    <File Path="untConfiguracoes.pas"/>
-    <File Path="untConfiguracoes.dfm"/>
-    <File Path="untEncodeThread.pas"/>
-    <File Path="untPrincipal.pas"/>
-    <File Path="untPrincipal.dfm"/>
-  </ProjectSortOrder>
 </BorlandProject>
