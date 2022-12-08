@@ -20,30 +20,16 @@ type
     btnEncode: TPngBitBtn;
     gpbFileList: TGroupBox;
     lblArquivosEncontrados: TLabel;
-    gbOpcoes: TGroupBox;
-    edtHandBreak: TEdit;
-    btnOpenCLI: TButton;
-    Label1: TLabel;
     hbDialog: TOpenDialog;
-    Label2: TLabel;
-    cbSemLegenda: TComboBox;
-    edtFiltro: TLabeledEdit;
-    cbPreset: TComboBox;
-    Label3: TLabel;
     btnClose: TPngBitBtn;
-    btnHandBreakHelp: TButton;
     FileList2: TListView;
     timerCoding: TTimer;
     timerCheckFinish: TTimer;
     Status: TProgressBar;
-    edtExtraFlags: TLabeledEdit;
-    btnExtraFlagsHelp: TButton;
-    edtProcessos: TLabeledEdit;
     btnConfigurar: TPngBitBtn;
     procedure btnLoadSourcePathClick(Sender: TObject);
     procedure btnEncodeClick(Sender: TObject);
     function GenerateOutputFile(InputFile: String): String;
-    procedure btnOpenCLIClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnHandBreakHelpClick(Sender: TObject);
     procedure timerCodingTimer(Sender: TObject);
@@ -51,6 +37,7 @@ type
     procedure btnLocalParaSalvarClick(Sender: TObject);
     procedure btnExtraFlagsHelpClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure btnConfigurarClick(Sender: TObject);
   private
     function BuildParams(sourcefile, outputFile: String): WideString;
     function HasSubtitle(sourcefile: String): Boolean;
@@ -150,17 +137,22 @@ var
   Source, Output: String;
 begin
 
-  if RunningThreads < StrToInt(edtProcessos.Text) then begin
+  if RunningThreads < MaxProcesses then begin
     Inc(RunningThreads);
     Source := FileList2.Items[Index].SubItems[0];
     OutPut := GenerateOutputFile(Source);
     FileList2.Items[Index].SubItems[2] := '3';
-    ThreadList[Index] := TEncodeThread.Create(edtHandBreak.Text, BuildParams(Source, Output), FileList2, Index);
+    ThreadList[Index] := TEncodeThread.Create(CLIPath, BuildParams(Source, Output), FileList2, Index);
     ThreadList[Index].FreeOnTerminate:=true;
     ThreadList[Index].OnTerminate := DoTerminateEvent;
     ThreadList[Index].Start;
   end;
 
+end;
+
+procedure TfrmPrincipal.btnConfigurarClick(Sender: TObject);
+begin
+  frmConfiguracoes.ShowModal;
 end;
 
 procedure TfrmPrincipal.btnEncodeClick(Sender: TObject);
@@ -173,7 +165,6 @@ begin
   end;
 
   btnEncode.Enabled := False;
-  gbOpcoes.Enabled := False;
   RunningThreads := 0;
   Status.Visible := True;
   Status.Max := 0;
@@ -213,13 +204,6 @@ begin
   ShellExecute(0, 'open', PChar('https://handbrake.fr/downloads2.php'), nil, nil, SW_SHOWNORMAL);
 end;
 
-procedure TfrmPrincipal.btnOpenCLIClick(Sender: TObject);
-begin
-if hbDialog.Execute then
-  edtHandBreak.Text := hbDialog.FileName;
-
-end;
-
 procedure TfrmPrincipal.DoTerminateEvent(Sender: TObject);
 var
   Index: Integer;
@@ -256,7 +240,7 @@ begin
     if (not HasSubtitle(FileList2.Items[i].SubItems[0])) then begin
       FileList2.Items[i].SubItems[2] := '2';
       FileList2.Items[i].SubItems[1] := 'Sem Legendas!';
-      if cbSemLegenda.ItemIndex = 1 then
+      if NoSubtitle = 1 then
         CopyFile(PWideChar(FileList2.Items[i].SubItems[0]), PWideChar(FileList2.Items[i].SubItems[3]), True);
     end else begin
       Status.Max := Status.Max + 1;
@@ -267,8 +251,16 @@ begin
 end;
 
 procedure TfrmPrincipal.FormActivate(Sender: TObject);
+var
+  software: string;
 begin
-  frmConfiguracoes.ShowModal;
+  if frmConfiguracoes.cbSoftware.ItemIndex = 0 then
+    Software := frmConfiguracoes.edthandbreakpath.Text
+  else
+    Software := frmConfiguracoes.edtFFMpegPath.Text;
+
+  if not FileExists(software) then
+    frmConfiguracoes.ShowModal;
 end;
 
 function TfrmPrincipal.GenerateOutputFile(InputFile: String): String;
@@ -309,7 +301,7 @@ var
 begin
   FileList2.Items.Clear;
   List := TStringList.Create;
-  FileSearch(edtSource.Text, edtFiltro.Text, List);
+  FileSearch(edtSource.Text, '*.mp4', List);
   lblArquivosEncontrados.Caption := 'Arquivos Encontrados: ' + IntToStr(List.Count);
 
   List.CustomSort(MySortProc);
@@ -351,7 +343,7 @@ begin
       timerCoding.Enabled := False;
     end;
 
-    if (RunningThreads < StrToInt(edtProcessos.Text)) and (NextFile > -1) then
+    if (RunningThreads < MaxProcesses) and (NextFile > -1) then
       BuildThreadForFile(NextFile)
     else
       break;

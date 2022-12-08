@@ -189,162 +189,13 @@ object frmPrincipal: TfrmPrincipal
       ViewStyle = vsReport
     end
   end
-  object gbOpcoes: TGroupBox
-    Left = 8
-    Top = 311
-    Width = 608
-    Height = 162
-    Caption = 'Op'#231#245'es'
-    TabOrder = 4
-    Visible = False
-    object Label1: TLabel
-      Left = 7
-      Top = 23
-      Width = 215
-      Height = 15
-      Caption = 'Local do CLI (Handbreak, FFMPEG, etc...)'
-    end
-    object Label2: TLabel
-      Left = 303
-      Top = 110
-      Width = 120
-      Height = 15
-      Caption = 'Arquivos sem Legenda'
-    end
-    object Label3: TLabel
-      Left = 150
-      Top = 111
-      Width = 105
-      Height = 15
-      Caption = 'Preset de Qualidade'
-    end
-    object edtcli: TEdit
-      Left = 5
-      Top = 40
-      Width = 536
-      Height = 23
-      Margins.Left = 5
-      Margins.Top = 5
-      Margins.Right = 5
-      Margins.Bottom = 5
-      ReadOnly = True
-      TabOrder = 0
-    end
-    object btnOpenCLI: TButton
-      Left = 542
-      Top = 39
-      Width = 31
-      Height = 25
-      Margins.Right = 5
-      Caption = '...'
-      TabOrder = 1
-      OnClick = btnOpenCLIClick
-    end
-    object cbSemLegenda: TComboBox
-      Left = 303
-      Top = 127
-      Width = 130
-      Height = 23
-      Style = csDropDownList
-      ItemIndex = 0
-      TabOrder = 2
-      Text = 'Ignorar'
-      Items.Strings = (
-        'Ignorar'
-        'Copiar')
-    end
-    object edtFiltro: TLabeledEdit
-      Left = 5
-      Top = 127
-      Width = 121
-      Height = 23
-      EditLabel.Width = 93
-      EditLabel.Height = 15
-      EditLabel.Caption = 'Filtro de Arquivos'
-      TabOrder = 3
-      Text = '*.mp4'
-    end
-    object cbPreset: TComboBox
-      Left = 149
-      Top = 127
-      Width = 130
-      Height = 23
-      Style = csDropDownList
-      ItemIndex = 5
-      TabOrder = 4
-      Text = 'Fast 720p30'
-      Items.Strings = (
-        'Very Fast 1080p30'
-        'Very Fast 720p30'
-        'Very Fast 576p25'
-        'Very Fast 480p30'
-        'Fast 1080p30'
-        'Fast 720p30'
-        'Fast 576p25'
-        'Fast 480p30'
-        'HQ 1080p30 Surround'
-        'HQ 720p30 Surround'
-        'HQ 576p25 Surround'
-        'HQ 480p30 Surround'
-        'Super HQ 1080p30 Surround'
-        'Super HQ 720p30 Surround'
-        'Super HQ 576p25 Surround'
-        'Super HQ 480p30 Surround')
-    end
-    object btnHandBreakHelp: TButton
-      Left = 572
-      Top = 39
-      Width = 31
-      Height = 25
-      Margins.Right = 5
-      Caption = '?'
-      TabOrder = 5
-      OnClick = btnHandBreakHelpClick
-    end
-    object edtExtraFlags: TLabeledEdit
-      Left = 5
-      Top = 84
-      Width = 566
-      Height = 23
-      EditLabel.Width = 60
-      EditLabel.Height = 15
-      EditLabel.Caption = 'Par'#226'metros'
-      TabOrder = 6
-      Text = 
-        '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt' +
-        '-burn "1" -o "#outputfile#"'
-    end
-    object btnExtraFlagsHelp: TButton
-      Left = 572
-      Top = 83
-      Width = 31
-      Height = 25
-      Margins.Right = 5
-      Caption = '?'
-      TabOrder = 7
-      OnClick = btnExtraFlagsHelpClick
-    end
-    object edtProcessos: TLabeledEdit
-      Left = 456
-      Top = 127
-      Width = 147
-      Height = 23
-      EditLabel.Width = 120
-      EditLabel.Height = 15
-      EditLabel.Caption = 'Processos Simult'#226'neos'
-      MaxLength = 2
-      NumbersOnly = True
-      TabOrder = 8
-      Text = '4'
-    end
-  end
   object btnClose: TPngBitBtn
     Left = 513
     Top = 495
     Width = 103
     Height = 45
     Caption = '&Sair'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = btnCloseClick
     PngImage.Data = {
       89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
@@ -375,7 +226,7 @@ object frmPrincipal: TfrmPrincipal
     Top = 495
     Width = 335
     Height = 45
-    TabOrder = 6
+    TabOrder = 5
     Visible = False
   end
   object btnConfigurar: TPngBitBtn
@@ -383,7 +234,7 @@ object frmPrincipal: TfrmPrincipal
     Top = 495
     Width = 49
     Height = 45
-    TabOrder = 7
+    TabOrder = 6
     OnClick = btnConfigurarClick
     PngImage.Data = {
       89504E470D0A1A0A0000000D494844520000001800000012080600000041EC1E

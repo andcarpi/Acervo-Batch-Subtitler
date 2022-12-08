@@ -20,35 +20,24 @@ type
     btnEncode: TPngBitBtn;
     gpbFileList: TGroupBox;
     lblArquivosEncontrados: TLabel;
-    gbOpcoes: TGroupBox;
-    edtHandBreak: TEdit;
-    btnOpenCLI: TButton;
-    Label1: TLabel;
     hbDialog: TOpenDialog;
-    Label2: TLabel;
-    cbSemLegenda: TComboBox;
-    edtFiltro: TLabeledEdit;
-    cbPreset: TComboBox;
-    Label3: TLabel;
     btnClose: TPngBitBtn;
-    btnHandBreakHelp: TButton;
     FileList2: TListView;
     timerCoding: TTimer;
     timerCheckFinish: TTimer;
     Status: TProgressBar;
-    edtExtraFlags: TLabeledEdit;
-    btnExtraFlagsHelp: TButton;
-    edtProcessos: TLabeledEdit;
+    btnConfigurar: TPngBitBtn;
     procedure btnLoadSourcePathClick(Sender: TObject);
     procedure btnEncodeClick(Sender: TObject);
     function GenerateOutputFile(InputFile: String): String;
-    procedure btnOpenCLIClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnHandBreakHelpClick(Sender: TObject);
     procedure timerCodingTimer(Sender: TObject);
     procedure timerCheckFinishTimer(Sender: TObject);
     procedure btnLocalParaSalvarClick(Sender: TObject);
     procedure btnExtraFlagsHelpClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure btnConfigurarClick(Sender: TObject);
   private
     function BuildParams(sourcefile, outputFile: String): WideString;
     function HasSubtitle(sourcefile: String): Boolean;
@@ -77,6 +66,8 @@ var
 implementation
 
 {$R *.dfm}
+
+uses untConfiguracoes;
 
 procedure FileSearch(const PathName: string; const Extensions: string;
  var lstFiles: TStringList);
@@ -146,17 +137,22 @@ var
   Source, Output: String;
 begin
 
-  if RunningThreads < StrToInt(edtProcessos.Text) then begin
+  if RunningThreads < MaxProcesses then begin
     Inc(RunningThreads);
     Source := FileList2.Items[Index].SubItems[0];
     OutPut := GenerateOutputFile(Source);
     FileList2.Items[Index].SubItems[2] := '3';
-    ThreadList[Index] := TEncodeThread.Create(edtHandBreak.Text, BuildParams(Source, Output), FileList2, Index);
+    ThreadList[Index] := TEncodeThread.Create(CLIPath, BuildParams(Source, Output), FileList2, Index);
     ThreadList[Index].FreeOnTerminate:=true;
     ThreadList[Index].OnTerminate := DoTerminateEvent;
     ThreadList[Index].Start;
   end;
 
+end;
+
+procedure TfrmPrincipal.btnConfigurarClick(Sender: TObject);
+begin
+  frmConfiguracoes.ShowModal;
 end;
 
 procedure TfrmPrincipal.btnEncodeClick(Sender: TObject);
@@ -169,7 +165,6 @@ begin
   end;
 
   btnEncode.Enabled := False;
-  gbOpcoes.Enabled := False;
   RunningThreads := 0;
   Status.Visible := True;
   Status.Max := 0;
@@ -207,13 +202,6 @@ end;
 procedure TfrmPrincipal.btnHandBreakHelpClick(Sender: TObject);
 begin
   ShellExecute(0, 'open', PChar('https://handbrake.fr/downloads2.php'), nil, nil, SW_SHOWNORMAL);
-end;
-
-procedure TfrmPrincipal.btnOpenCLIClick(Sender: TObject);
-begin
-if hbDialog.Execute then
-  edtHandBreak.Text := hbDialog.FileName;
-
 end;
 
 procedure TfrmPrincipal.DoTerminateEvent(Sender: TObject);
@@ -260,6 +248,19 @@ begin
   
   end;
 
+end;
+
+procedure TfrmPrincipal.FormActivate(Sender: TObject);
+var
+  software: string;
+begin
+  if frmConfiguracoes.cbSoftware.ItemIndex = 0 then
+    Software := frmConfiguracoes.edthandbreakpath.Text
+  else
+    Software := frmConfiguracoes.edtFFMpegPath.Text;
+
+  if not FileExists(software) then
+    frmConfiguracoes.ShowModal;
 end;
 
 function TfrmPrincipal.GenerateOutputFile(InputFile: String): String;
@@ -342,7 +343,7 @@ begin
       timerCoding.Enabled := False;
     end;
 
-    if (RunningThreads < StrToInt(edtProcessos.Text)) and (NextFile > -1) then
+    if (RunningThreads < MaxProcesses) and (NextFile > -1) then
       BuildThreadForFile(NextFile)
     else
       break;

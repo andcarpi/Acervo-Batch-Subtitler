@@ -20,25 +20,12 @@ type
     btnEncode: TPngBitBtn;
     gpbFileList: TGroupBox;
     lblArquivosEncontrados: TLabel;
-    gbOpcoes: TGroupBox;
-    edtHandBreak: TEdit;
-    btnOpenCLI: TButton;
-    Label1: TLabel;
     hbDialog: TOpenDialog;
-    Label2: TLabel;
-    cbSemLegenda: TComboBox;
-    edtFiltro: TLabeledEdit;
-    cbPreset: TComboBox;
-    Label3: TLabel;
     btnClose: TPngBitBtn;
-    btnHandBreakHelp: TButton;
     FileList2: TListView;
     timerCoding: TTimer;
     timerCheckFinish: TTimer;
     Status: TProgressBar;
-    edtExtraFlags: TLabeledEdit;
-    btnExtraFlagsHelp: TButton;
-    edtProcessos: TLabeledEdit;
     btnConfigurar: TPngBitBtn;
     procedure btnLoadSourcePathClick(Sender: TObject);
     procedure btnEncodeClick(Sender: TObject);
@@ -151,12 +138,12 @@ var
   Source, Output: String;
 begin
 
-  if RunningThreads < StrToInt(edtProcessos.Text) then begin
+  if RunningThreads < MaxProcesses then begin
     Inc(RunningThreads);
     Source := FileList2.Items[Index].SubItems[0];
     OutPut := GenerateOutputFile(Source);
     FileList2.Items[Index].SubItems[2] := '3';
-    ThreadList[Index] := TEncodeThread.Create(edtHandBreak.Text, BuildParams(Source, Output), FileList2, Index);
+    ThreadList[Index] := TEncodeThread.Create(CLIPath, BuildParams(Source, Output), FileList2, Index);
     ThreadList[Index].FreeOnTerminate:=true;
     ThreadList[Index].OnTerminate := DoTerminateEvent;
     ThreadList[Index].Start;
@@ -179,7 +166,6 @@ begin
   end;
 
   btnEncode.Enabled := False;
-  gbOpcoes.Enabled := False;
   RunningThreads := 0;
   Status.Visible := True;
   Status.Max := 0;
@@ -222,7 +208,7 @@ end;
 procedure TfrmPrincipal.btnOpenCLIClick(Sender: TObject);
 begin
 if hbDialog.Execute then
-  edtHandBreak.Text := hbDialog.FileName;
+  edtcli.Text := hbDialog.FileName;
 
 end;
 
@@ -273,8 +259,16 @@ begin
 end;
 
 procedure TfrmPrincipal.FormActivate(Sender: TObject);
+var
+  software: string;
 begin
-  frmConfiguracoes.ShowModal;
+  if frmConfiguracoes.cbSoftware.ItemIndex = 0 then
+    Software := frmConfiguracoes.edthandbreakpath.Text
+  else
+    Software := frmConfiguracoes.edtFFMpegPath.Text;
+
+  if not FileExists(software) then
+    frmConfiguracoes.ShowModal;
 end;
 
 function TfrmPrincipal.GenerateOutputFile(InputFile: String): String;

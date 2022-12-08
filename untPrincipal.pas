@@ -20,30 +20,16 @@ type
     btnEncode: TPngBitBtn;
     gpbFileList: TGroupBox;
     lblArquivosEncontrados: TLabel;
-    gbOpcoes: TGroupBox;
-    edtcli: TEdit;
-    btnOpenCLI: TButton;
-    Label1: TLabel;
     hbDialog: TOpenDialog;
-    Label2: TLabel;
-    cbSemLegenda: TComboBox;
-    edtFiltro: TLabeledEdit;
-    cbPreset: TComboBox;
-    Label3: TLabel;
     btnClose: TPngBitBtn;
-    btnHandBreakHelp: TButton;
     FileList2: TListView;
     timerCoding: TTimer;
     timerCheckFinish: TTimer;
     Status: TProgressBar;
-    edtExtraFlags: TLabeledEdit;
-    btnExtraFlagsHelp: TButton;
-    edtProcessos: TLabeledEdit;
     btnConfigurar: TPngBitBtn;
     procedure btnLoadSourcePathClick(Sender: TObject);
     procedure btnEncodeClick(Sender: TObject);
     function GenerateOutputFile(InputFile: String): String;
-    procedure btnOpenCLIClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnHandBreakHelpClick(Sender: TObject);
     procedure timerCodingTimer(Sender: TObject);
@@ -179,7 +165,6 @@ begin
   end;
 
   btnEncode.Enabled := False;
-  gbOpcoes.Enabled := False;
   RunningThreads := 0;
   Status.Visible := True;
   Status.Max := 0;
@@ -219,13 +204,6 @@ begin
   ShellExecute(0, 'open', PChar('https://handbrake.fr/downloads2.php'), nil, nil, SW_SHOWNORMAL);
 end;
 
-procedure TfrmPrincipal.btnOpenCLIClick(Sender: TObject);
-begin
-if hbDialog.Execute then
-  edtcli.Text := hbDialog.FileName;
-
-end;
-
 procedure TfrmPrincipal.DoTerminateEvent(Sender: TObject);
 var
   Index: Integer;
@@ -262,7 +240,7 @@ begin
     if (not HasSubtitle(FileList2.Items[i].SubItems[0])) then begin
       FileList2.Items[i].SubItems[2] := '2';
       FileList2.Items[i].SubItems[1] := 'Sem Legendas!';
-      if cbSemLegenda.ItemIndex = 1 then
+      if NoSubtitle = 1 then
         CopyFile(PWideChar(FileList2.Items[i].SubItems[0]), PWideChar(FileList2.Items[i].SubItems[3]), True);
     end else begin
       Status.Max := Status.Max + 1;
@@ -323,7 +301,7 @@ var
 begin
   FileList2.Items.Clear;
   List := TStringList.Create;
-  FileSearch(edtSource.Text, edtFiltro.Text, List);
+  FileSearch(edtSource.Text, '*.mp4', List);   //TODO Arrumar o filtro de arquivos
   lblArquivosEncontrados.Caption := 'Arquivos Encontrados: ' + IntToStr(List.Count);
 
   List.CustomSort(MySortProc);
@@ -345,7 +323,6 @@ procedure TfrmPrincipal.timerCheckFinishTimer(Sender: TObject);
 begin
   if ((GetNextFile(0) = -1) and (RunningThreads = 0)) then begin
     timerCheckFinish.Enabled := False;
-    gbOpcoes.Enabled := true;
     ShowMessage('Processo Encerrado');
     btnEncode.Enabled := True;
     Status.Visible := False;
