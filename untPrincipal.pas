@@ -21,7 +21,7 @@ type
     gpbFileList: TGroupBox;
     lblArquivosEncontrados: TLabel;
     gbOpcoes: TGroupBox;
-    edtHandBreak: TEdit;
+    edtcli: TEdit;
     btnOpenCLI: TButton;
     Label1: TLabel;
     hbDialog: TOpenDialog;
@@ -32,7 +32,6 @@ type
     Label3: TLabel;
     btnClose: TPngBitBtn;
     btnHandBreakHelp: TButton;
-    btnSobre: TButton;
     FileList2: TListView;
     timerCoding: TTimer;
     timerCheckFinish: TTimer;
@@ -40,19 +39,20 @@ type
     edtExtraFlags: TLabeledEdit;
     btnExtraFlagsHelp: TButton;
     edtProcessos: TLabeledEdit;
+    btnConfigurar: TPngBitBtn;
     procedure btnLoadSourcePathClick(Sender: TObject);
     procedure btnEncodeClick(Sender: TObject);
     function GenerateOutputFile(InputFile: String): String;
     procedure btnOpenCLIClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnHandBreakHelpClick(Sender: TObject);
-    procedure btnSobreClick(Sender: TObject);
     procedure timerCodingTimer(Sender: TObject);
     procedure timerCheckFinishTimer(Sender: TObject);
     procedure btnLocalParaSalvarClick(Sender: TObject);
     procedure btnExtraFlagsHelpClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure btnConfigurarClick(Sender: TObject);
   private
-    HandBreakPath: String;
     function BuildParams(sourcefile, outputFile: String): WideString;
     function HasSubtitle(sourcefile: String): Boolean;
     procedure FixDirectory;
@@ -65,6 +65,12 @@ type
     { Public declarations }
     ThreadList: Array of TEncodeThread;
     RunningThreads: Integer;
+    CLIPath: String;
+    BaseParams: String;
+    NoSubtitle: Integer;
+    Preset: String;
+    MaxProcesses: Integer;
+
     procedure DoTerminateEvent(Sender: TObject);
   end;
 
@@ -74,6 +80,39 @@ var
 implementation
 
 {$R *.dfm}
+
+uses untConfiguracoes;
+
+procedure FileSearch(const PathName: string; const Extensions: string;
+ var lstFiles: TStringList);
+const
+  FileMask = '*.*';
+var
+  Rec: TSearchRec;
+  Path: string;
+begin
+  Path := IncludeTrailingBackslash(PathName);
+  if FindFirst(Path + FileMask, faAnyFile - faDirectory, Rec) = 0 then
+    try
+      repeat
+        if AnsiPos(ExtractFileExt(Rec.Name), Extensions) > 0 then
+          lstFiles.Add(Path + Rec.Name);
+      until FindNext(Rec) <> 0;
+    finally
+      FindClose(Rec);
+    end;
+
+  if FindFirst(Path + '*.*', faDirectory, Rec) = 0 then
+    try
+      repeat
+        if ((Rec.Attr and faDirectory) <> 0) and (Rec.Name <> '.') and
+          (Rec.Name <> '..') then
+          FileSearch(Path + Rec.Name, Extensions, lstFiles);
+      until FindNext(Rec) <> 0;
+    finally
+      FindClose(Rec);
+    end;
+end;
 
 function MySortProc(List: TStringList; Index1, Index2: Integer): Integer;
 var
@@ -99,12 +138,11 @@ function TfrmPrincipal.BuildParams(sourcefile, outputFile: String): WideString;
 var
   FParams: WideString;
 begin
-  FParams := '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt-burn "1" #extra# -o "#outputfile#"';
+  FParams := BaseParams;
   FParams := StringReplace(FParams, '#inputfile#', sourcefile, []);
   FParams := StringReplace(FParams, '#subtitlefile#', ChangeFileExt(sourcefile, '.srt'), []);
   FParams := StringReplace(FParams, '#outputfile#', outputFile, []);
-  FParams := StringReplace(FParams, '#preset#', cbPreset.Text, []);
-  FParams := StringReplace(FParams, '#extra#', Trim(edtExtraFlags.Text), []);
+  FParams := StringReplace(FParams, '#preset#', Preset, []);
   Result := FParams;
 end;
 
@@ -113,17 +151,22 @@ var
   Source, Output: String;
 begin
 
-  if RunningThreads < StrToInt(edtProcessos.Text) then begin
+  if RunningThreads < MaxProcesses then begin
     Inc(RunningThreads);
     Source := FileList2.Items[Index].SubItems[0];
     OutPut := GenerateOutputFile(Source);
     FileList2.Items[Index].SubItems[2] := '3';
-    ThreadList[Index] := TEncodeThread.Create(edtHandBreak.Text, BuildParams(Source, Output), FileList2, Index);
+    ThreadList[Index] := TEncodeThread.Create(CLIPath, BuildParams(Source, Output), FileList2, Index);
     ThreadList[Index].FreeOnTerminate:=true;
     ThreadList[Index].OnTerminate := DoTerminateEvent;
     ThreadList[Index].Start;
   end;
 
+end;
+
+procedure TfrmPrincipal.btnConfigurarClick(Sender: TObject);
+begin
+  frmConfiguracoes.ShowModal;
 end;
 
 procedure TfrmPrincipal.btnEncodeClick(Sender: TObject);
@@ -179,13 +222,8 @@ end;
 procedure TfrmPrincipal.btnOpenCLIClick(Sender: TObject);
 begin
 if hbDialog.Execute then
-  edtHandBreak.Text := hbDialog.FileName;
+  edtcli.Text := hbDialog.FileName;
 
-end;
-
-procedure TfrmPrincipal.btnSobreClick(Sender: TObject);
-begin
-  ShowMessage('Desenvolvido por @andcarpi');
 end;
 
 procedure TfrmPrincipal.DoTerminateEvent(Sender: TObject);
@@ -234,6 +272,19 @@ begin
 
 end;
 
+procedure TfrmPrincipal.FormActivate(Sender: TObject);
+var
+  software: string;
+begin
+  if frmConfiguracoes.cbSoftware.ItemIndex = 0 then
+    Software := frmConfiguracoes.edthandbreakpath.Text
+  else
+    Software := frmConfiguracoes.edtFFMpegPath.Text;
+
+  if not FileExists(software) then
+    frmConfiguracoes.ShowModal;
+end;
+
 function TfrmPrincipal.GenerateOutputFile(InputFile: String): String;
 var
   outputFile: String;
@@ -267,17 +318,14 @@ end;
 
 procedure TfrmPrincipal.LoadFiles;
 var
-  S: TStringDynArray;
   List: TStringList;
   I: Integer;
 begin
   FileList2.Items.Clear;
-  S := TDirectory.GetFiles(edtSource.Text, edtFiltro.Text ,TSearchOption.soAllDirectories);
-  lblArquivosEncontrados.Caption := 'Arquivos Encontrados: ' + IntToStr(Length(S));
   List := TStringList.Create;
-  for I := 0 to Length(S)-1 do begin
-    List.Add(S[i]);
-  end;
+  FileSearch(edtSource.Text, edtFiltro.Text, List);
+  lblArquivosEncontrados.Caption := 'Arquivos Encontrados: ' + IntToStr(List.Count);
+
   List.CustomSort(MySortProc);
   for I := 0 to List.Count-1 do begin
     FileList2.Items.Add;
@@ -317,7 +365,7 @@ begin
       timerCoding.Enabled := False;
     end;
 
-    if (RunningThreads < StrToInt(edtProcessos.Text)) and (NextFile > -1) then
+    if (RunningThreads < MaxProcesses) and (NextFile > -1) then
       BuildThreadForFile(NextFile)
     else
       break;

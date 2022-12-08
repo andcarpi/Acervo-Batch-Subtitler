@@ -6,14 +6,23 @@ uses
   untEncodeThread in 'untEncodeThread.pas',
   untConfiguracoes in 'untConfiguracoes.pas' {frmConfiguracoes},
   Vcl.Themes,
-  Vcl.Styles;
+  Vcl.Styles,
+  Vcl.Dialogs,
+  System.IniFiles,
+  System.SysUtils;
 
 {$R *.res}
+var
+  Ini: TiniFile;
+  Skin: String;
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  TStyleManager.TrySetStyle('Glossy');
+  Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.INI' ) );
+  Skin := Ini.ReadString('Opções', 'Visual', 'Windows');
+  Ini.Free;
+  TStyleManager.TrySetStyle(Trim(Skin));
   Application.Title := 'AcervoCursos - Encoder de Legenda';
   Application.CreateForm(TfrmPrincipal, frmPrincipal);
   Application.CreateForm(TfrmConfiguracoes, frmConfiguracoes);
