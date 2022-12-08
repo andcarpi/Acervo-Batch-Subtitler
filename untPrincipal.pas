@@ -164,6 +164,11 @@ begin
     FileList2.Items[i].SubItems[2] := '0';
   end;
 
+  if not FileExists(CLIPath) then begin
+    Showmessage('Software não encontrado, corrija o local do HandBreak');
+    Abort;
+  end;
+
   btnEncode.Enabled := False;
   RunningThreads := 0;
   Status.Visible := True;
