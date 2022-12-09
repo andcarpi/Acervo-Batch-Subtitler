@@ -39,26 +39,27 @@ type
     memParams: TMemo;
     btnOK: TPngBitBtn;
     VisualSwitch: TToggleSwitch;
-    PngBitBtn1: TPngBitBtn;
+    btnRestore: TPngBitBtn;
     procedure Button1Click(Sender: TObject);
     procedure btnOpenCLIClick(Sender: TObject);
     procedure btnExtraFlagsHelpClick(Sender: TObject);
     procedure btnHandBreakHelpClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure SetStyle();
     procedure VisualSwitchClick(Sender: TObject);
     procedure LoadIni();
     procedure SaveIni();
-    procedure PngBitBtn1Click(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnRestoreClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure ApplyConfig;
+    procedure CheckSoftwareExists;
+    procedure FormCreate(Sender: TObject);
+    procedure cbSoftwareChange(Sender: TObject);
   private
     { Private declarations }
   public
     Loaded: Boolean;
-    Save: Boolean;
     { Public declarations }
   end;
 
@@ -70,6 +71,23 @@ implementation
 {$R *.dfm}
 
 uses untPrincipal;
+
+procedure TfrmConfiguracoes.ApplyConfig;
+begin
+  with frmPrincipal do begin
+    if cbSoftware.ItemIndex = 0 then begin
+      CLIPath := edtHandBreakPath.Text;
+      BaseParams := edtHandBreakParams.Text;
+    end else begin
+      CLIPath := edtFFmpegPath.Text;
+      BaseParams := edtFFMpegParams.Text;
+    end;
+    MaxProcesses := spinProcessos.Value;
+    NoSubtitle := cbSemLegenda.ItemIndex;
+    Preset := cbPreset.Items[cbPreset.ItemIndex];
+    Software := cbSoftware.ItemIndex;
+  end;
+end;
 
 procedure TfrmConfiguracoes.btnExtraFlagsHelpClick(Sender: TObject);
 begin
@@ -84,19 +102,7 @@ end;
 procedure TfrmConfiguracoes.btnOKClick(Sender: TObject);
 begin
   SaveIni;
-  Save := True;
-  with frmPrincipal do begin
-    if cbSoftware.ItemIndex = 0 then begin
-      CLIPath := edtHandBreakPath.Text;
-      BaseParams := edtHandBreakParams.Text;
-    end else begin
-      CLIPath := edtFFmpegPath.Text;
-      BaseParams := edtFFMpegParams.Text;
-    end;
-    MaxProcesses := spinProcessos.Value;
-    NoSubtitle := cbSemLegenda.ItemIndex;
-    Preset := cbPreset.Items[cbPreset.ItemIndex];
-  end;
+  ApplyConfig;
   Close;
 end;
 
@@ -122,35 +128,46 @@ begin
   ShellExecute(0, 'open', PChar('https://ffmpeg.org/ffmpeg.html'), nil, nil, SW_SHOWNORMAL);
 end;
 
-procedure TfrmConfiguracoes.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure TfrmConfiguracoes.cbSoftwareChange(Sender: TObject);
 begin
-if not Save then
-  Application.Terminate;
+  cbPreset.Enabled := (cbSoftware.ItemIndex = 0);
+end;
+
+procedure TfrmConfiguracoes.CheckSoftwareExists;
+begin
+  if cbSoftware.ItemIndex = 0 then
+    if not FileExists(edtHandBreakPath.Text) then
+      edtHandBreakPath.Text := '';
+  if cbSoftware.ItemIndex = 1 then
+    if not FileExists(edtFFMpegPath.Text) then
+      edtFFMpegPath.Text := '';
+
 end;
 
 procedure TfrmConfiguracoes.FormCreate(Sender: TObject);
 begin
   Loaded := False;
-  Save := False;
   LoadIni;
+  ApplyConfig;
   cklFileTypes.CheckAll(cbChecked);
+  frmPrincipal.CheckConfig();
 end;
 
 procedure TfrmConfiguracoes.LoadIni;
 var
    Ini: TIniFile;
 begin
-  Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.INI' ) );
+  Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.ini' ) );
   try
-    cbPreset.ItemIndex := Ini.ReadInteger('Opções', 'Preset', 0);
+    cbPreset.ItemIndex := Ini.ReadInteger('Opções', 'Preset', 5);
     cbSemLegenda.ItemIndex := Ini.ReadInteger('Opções', 'SemLegendas', 0);
     cbSoftware.ItemIndex := Ini.ReadInteger('Opções', 'Software', 0);
+    cbPreset.Enabled := (cbSoftware.ItemIndex = 0);
     spinProcessos.Value := Ini.ReadInteger('Opções', 'MaximoProcessos', 4);
-    edtHandBreakPath.Text := Ini.ReadString('HandBreak', 'Path', '');
+    edtHandBreakPath.Text := Ini.ReadString('HandBreak', 'Path', ExtractFilePath(Application.ExeName) + 'HandBrakeCLI.exe');
     edtHandBreakParams.Text := Ini.ReadString('HandBreak', 'Params', '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt-burn "1" -o "#outputfile#"');
-    edtFFMpegPath.Text := Ini.ReadString('FFMPEG', 'Path', '');
-    edtFFMpegParams.Text := Ini.ReadString('FFMPEG', 'Params', '-i "#inputfile#" -vf subtitles="#subtitlefile#" -c:a copy "#outputfile#"');
+    edtFFMpegPath.Text := Ini.ReadString('FFMPEG', 'Path', ExtractFilePath(Application.ExeName) + 'ffmpeg.exe');
+    edtFFMpegParams.Text := Ini.ReadString('FFMPEG', 'Params', '-i "#inputfile#" -c:v libx264 -crf 20 -movflags +faststart -vf subtitles="#subtitlefile#" -c:a aac -b:a 160k -y "#outputfile#"');
     if Ini.ReadString('Opções', 'Visual', 'Windows') = 'Windows' then
       VisualSwitch.State := tssOff
     else
@@ -162,7 +179,7 @@ begin
 
 end;
 
-procedure TfrmConfiguracoes.PngBitBtn1Click(Sender: TObject);
+procedure TfrmConfiguracoes.btnRestoreClick(Sender: TObject);
 begin
 cbPreset.ItemIndex := 5;
 cbSemLegenda.ItemIndex := 0;
@@ -171,14 +188,14 @@ spinProcessos.Value := 4;
 edtHandBreakPath.Text := '';
 edtHandBreakParams.Text := '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt-burn "1" -o "#outputfile#"';
 edtFFMpegPath.Text := '';
-edtFFMpegParams.Text := '-i "#inputfile#" -vf subtitles="#subtitlefile#" -c:a copy "#outputfile#"';
+edtFFMpegParams.Text := '-i "#inputfile#" -c:v libx264 -crf 20 -movflags +faststart -vf subtitles="#subtitlefile#" -c:a aac -b:a 160k -y "#outputfile#"';
 end;
 
 procedure TfrmConfiguracoes.SaveIni;
 var
    Ini: TIniFile;
 begin
-  Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.INI' ) );
+  Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.ini' ) );
   try
     Ini.WriteInteger('Opções', 'Preset', cbPreset.ItemIndex);
     Ini.WriteInteger('Opções', 'SemLegendas', cbSemLegenda.ItemIndex);

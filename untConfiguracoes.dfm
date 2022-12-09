@@ -5,7 +5,7 @@ object frmConfiguracoes: TfrmConfiguracoes
   BorderStyle = bsSingle
   Caption = 'Configura'#231#245'es'
   ClientHeight = 515
-  ClientWidth = 614
+  ClientWidth = 626
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,6 @@ object frmConfiguracoes: TfrmConfiguracoes
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
-  OnClose = FormClose
   OnCreate = FormCreate
   TextHeight = 15
   object gpbArquivos: TGroupBox
@@ -120,7 +119,10 @@ object frmConfiguracoes: TfrmConfiguracoes
     Top = 8
     Width = 162
     Height = 57
+    Hint = 'HandBrake Apenas'
     Caption = 'Preset de Qualidade'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 2
     object cbPreset: TComboBox
       Left = 16
@@ -207,6 +209,7 @@ object frmConfiguracoes: TfrmConfiguracoes
       ItemIndex = 0
       TabOrder = 0
       Text = 'HandBreakCLI'
+      OnChange = cbSoftwareChange
       Items.Strings = (
         'HandBreakCLI'
         'FFMPEG')
@@ -268,8 +271,8 @@ object frmConfiguracoes: TfrmConfiguracoes
       EditLabel.Caption = 'Par'#226'metros'
       TabOrder = 3
       Text = 
-        '-i "#inputfile#" -vf subtitles="#subtitlefile#" -c:a copy "#outp' +
-        'utfile#"'
+        '-i "#inputfile#" -c:v libx264 -crf 20 -movflags +faststart -vf s' +
+        'ubtitles="#subtitlefile#" -c:a aac -b:a 160k -y "#outputfile#"'
     end
     object Button3: TButton
       Left = 572
@@ -301,7 +304,7 @@ object frmConfiguracoes: TfrmConfiguracoes
     TabOrder = 7
   end
   object btnOK: TPngBitBtn
-    Left = 513
+    Left = 508
     Top = 467
     Width = 103
     Height = 40
@@ -324,14 +327,14 @@ object frmConfiguracoes: TfrmConfiguracoes
     ThumbWidth = 25
     OnClick = VisualSwitchClick
   end
-  object PngBitBtn1: TPngBitBtn
+  object btnRestore: TPngBitBtn
     Left = 8
     Top = 467
     Width = 107
     Height = 40
     Caption = 'Restaurar Padr'#245'es'
     TabOrder = 10
-    OnClick = PngBitBtn1Click
+    OnClick = btnRestoreClick
   end
   object hbDialog: TOpenDialog
     FileName = 'handbreakcli.exe'

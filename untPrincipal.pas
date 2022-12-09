@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, FileCtrl, Vcl.Buttons,
   PngBitBtn, System.IOUtils, System.Types, Vcl.Mask, Vcl.ExtCtrls, Winapi.ShellAPI,
-  Vcl.CheckLst, Vcl.Grids, Vcl.ComCtrls, untEncodeThread, Vcl.Menus;
+  Vcl.CheckLst, Vcl.Grids, Vcl.ComCtrls, untEncodeThread, Vcl.Menus, System.StrUtils;
 
 type
   TfrmPrincipal = class(TForm)
@@ -36,8 +36,8 @@ type
     procedure timerCheckFinishTimer(Sender: TObject);
     procedure btnLocalParaSalvarClick(Sender: TObject);
     procedure btnExtraFlagsHelpClick(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure btnConfigurarClick(Sender: TObject);
+    procedure gpbFileListClick(Sender: TObject);
   private
     function BuildParams(sourcefile, outputFile: String): WideString;
     function HasSubtitle(sourcefile: String): Boolean;
@@ -46,11 +46,13 @@ type
     procedure BuildThreadForFile(Index: Integer);
     function GetNextFile(Status: Integer): Integer;
     procedure FixNoSubtitles;
+
     { Private declarations }
   public
     { Public declarations }
     ThreadList: Array of TEncodeThread;
     RunningThreads: Integer;
+    Software: Integer;
     CLIPath: String;
     BaseParams: String;
     NoSubtitle: Integer;
@@ -58,6 +60,7 @@ type
     MaxProcesses: Integer;
 
     procedure DoTerminateEvent(Sender: TObject);
+    procedure CheckConfig;
   end;
 
 var
@@ -68,6 +71,17 @@ implementation
 {$R *.dfm}
 
 uses untConfiguracoes;
+
+function CheckSoftwareExists: Boolean;
+begin
+  Result := FileExists(frmPrincipal.CLIPath);
+end;
+
+function FixFFMPEGSubtitlePath(SubtitlePath: String): String;
+begin
+  Result:= StringReplace(SubtitlePath, '\', '\\\\', [rfReplaceAll]);
+  Result:= StringReplace(Result, ':', '\\:', [rfReplaceAll]);
+end;
 
 procedure FileSearch(const PathName: string; const Extensions: string;
  var lstFiles: TStringList);
@@ -123,10 +137,15 @@ end;
 function TfrmPrincipal.BuildParams(sourcefile, outputFile: String): WideString;
 var
   FParams: WideString;
+  Subtitle: String;
 begin
   FParams := BaseParams;
   FParams := StringReplace(FParams, '#inputfile#', sourcefile, []);
-  FParams := StringReplace(FParams, '#subtitlefile#', ChangeFileExt(sourcefile, '.srt'), []);
+  Subtitle := ChangeFileExt(sourcefile, '.srt');
+  if Software = 1 then
+    Subtitle := FixFFMPEGSubtitlePath(Subtitle);
+
+  FParams := StringReplace(FParams, '#subtitlefile#', Subtitle, []);
   FParams := StringReplace(FParams, '#outputfile#', outputFile, []);
   FParams := StringReplace(FParams, '#preset#', Preset, []);
   Result := FParams;
@@ -150,6 +169,12 @@ begin
 
 end;
 
+procedure TfrmPrincipal.CheckConfig;
+begin
+  if not CheckSoftwareExists then
+    frmConfiguracoes.Showmodal;
+end;
+
 procedure TfrmPrincipal.btnConfigurarClick(Sender: TObject);
 begin
   frmConfiguracoes.ShowModal;
@@ -164,7 +189,7 @@ begin
     FileList2.Items[i].SubItems[2] := '0';
   end;
 
-  if not FileExists(CLIPath) then begin
+  if not CheckSoftwareExists then begin
     Showmessage('Software não encontrado, corrija o local do HandBreak');
     Abort;
   end;
@@ -255,19 +280,6 @@ begin
 
 end;
 
-procedure TfrmPrincipal.FormActivate(Sender: TObject);
-var
-  software: string;
-begin
-  if frmConfiguracoes.cbSoftware.ItemIndex = 0 then
-    Software := frmConfiguracoes.edthandbreakpath.Text
-  else
-    Software := frmConfiguracoes.edtFFMpegPath.Text;
-
-  if not FileExists(software) then
-    frmConfiguracoes.ShowModal;
-end;
-
 function TfrmPrincipal.GenerateOutputFile(InputFile: String): String;
 var
   outputFile: String;
@@ -292,6 +304,11 @@ begin
     end;
   end;
 
+end;
+
+procedure TfrmPrincipal.gpbFileListClick(Sender: TObject);
+begin
+  Showmessage(Booltostr(CheckSoftwareExists, true));
 end;
 
 function TfrmPrincipal.HasSubtitle(sourcefile: String): Boolean;
@@ -358,3 +375,4 @@ begin
 end;
 
 end.
+

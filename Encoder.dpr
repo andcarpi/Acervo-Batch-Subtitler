@@ -1,5 +1,7 @@
 program Encoder;
 
+
+
 uses
   Vcl.Forms,
   untPrincipal in 'untPrincipal.pas' {frmPrincipal},

@@ -13,7 +13,6 @@ object frmPrincipal: TfrmPrincipal
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
-  OnActivate = FormActivate
   TextHeight = 15
   object pbSourceLocation: TGroupBox
     Left = 8
@@ -121,6 +120,7 @@ object frmPrincipal: TfrmPrincipal
     Height = 355
     Caption = 'Lista de Arquivos'
     TabOrder = 3
+    OnClick = gpbFileListClick
     DesignSize = (
       608
       355)
