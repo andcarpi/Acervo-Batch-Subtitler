@@ -29,7 +29,7 @@ object frmConfiguracoes: TfrmConfiguracoes
       Width = 242
       Height = 89
       Columns = 2
-      ItemHeight = 17
+      ItemHeight = 15
       Items.Strings = (
         'MP4'
         'M4V'
@@ -100,8 +100,8 @@ object frmConfiguracoes: TfrmConfiguracoes
       EditLabel.Caption = 'Par'#226'metros'
       TabOrder = 3
       Text = 
-        '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt' +
-        '-burn "1" -o "#outputfile#"'
+        '-i "#inputfile#" -Z "#preset#" --srt-codeset utf-8 --srt-file "#' +
+        'subtitlefile#" --srt-burn "1" -o "#outputfile#"'
     end
     object btnExtraFlagsHelp: TButton
       Left = 572
@@ -288,7 +288,7 @@ object frmConfiguracoes: TfrmConfiguracoes
   object memParams: TMemo
     Left = 8
     Top = 135
-    Width = 608
+    Width = 436
     Height = 83
     Lines.Strings = (
       
@@ -336,18 +336,40 @@ object frmConfiguracoes: TfrmConfiguracoes
     TabOrder = 10
     OnClick = btnRestoreClick
   end
+  object gbVisProcessos: TGroupBox
+    Left = 456
+    Top = 135
+    Width = 162
+    Height = 58
+    Caption = 'Visualizar Processos'
+    TabOrder = 11
+    object cbVisualizar: TComboBox
+      Left = 16
+      Top = 21
+      Width = 130
+      Height = 23
+      Style = csDropDownList
+      ItemIndex = 0
+      TabOrder = 0
+      Text = 'N'#227'o'
+      OnChange = cbSoftwareChange
+      Items.Strings = (
+        'N'#227'o'
+        'Sim')
+    end
+  end
   object hbDialog: TOpenDialog
     FileName = 'handbreakcli.exe'
     Filter = 'HandBreakCLI|*.exe'
     Title = 'Localiza'#231#227'o do HandBreakCLI'
-    Left = 432
-    Top = 158
+    Left = 296
+    Top = 142
   end
   object ffmpegDialog: TOpenDialog
     FileName = 'ffmpeg.exe'
     Filter = 'ffmpeg|ffmpeg.exe'
     Title = 'Localiza'#231#227'o do FFMPEG'
-    Left = 528
-    Top = 158
+    Left = 392
+    Top = 142
   end
 end

@@ -9,6 +9,15 @@ uses
   Vcl.CheckLst, Vcl.Grids, Vcl.ComCtrls, untEncodeThread, Vcl.Menus, System.StrUtils;
 
 type
+  {TProcessFile}
+  TProcessFile = Record
+    Process: Boolean;
+    InputFile: String;
+    OutpuFile: String;
+    Status: Integer;
+  end;
+
+type
   TfrmPrincipal = class(TForm)
     pbSourceLocation: TGroupBox;
     edtSource: TEdit;
@@ -50,6 +59,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    ProcessList: Array of TProcessFile;
     ThreadList: Array of TEncodeThread;
     RunningThreads: Integer;
     Software: Integer;
@@ -58,6 +68,7 @@ type
     NoSubtitle: Integer;
     Preset: String;
     MaxProcesses: Integer;
+    VisualizarProcessos: Boolean;
 
     procedure DoTerminateEvent(Sender: TObject);
     procedure CheckConfig;
@@ -327,7 +338,12 @@ begin
   lblArquivosEncontrados.Caption := 'Arquivos Encontrados: ' + IntToStr(List.Count);
 
   List.CustomSort(MySortProc);
+  SetLength(ProcessList, List.Count);
   for I := 0 to List.Count-1 do begin
+    ProcessList[I].Process := True;
+    ProcessList[I].InputFile := List[I];
+    ProcessList[I].OutpuFile := GenerateOutputFile(List[i]);
+    ProcessList[I].Status := 0;
     FileList2.Items.Add;
     FileList2.Items[i].Checked := true;
     FileList2.Items[i].SubItems.Add(List[i]);

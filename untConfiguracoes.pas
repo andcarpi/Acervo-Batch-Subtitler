@@ -40,6 +40,8 @@ type
     btnOK: TPngBitBtn;
     VisualSwitch: TToggleSwitch;
     btnRestore: TPngBitBtn;
+    gbVisProcessos: TGroupBox;
+    cbVisualizar: TComboBox;
     procedure Button1Click(Sender: TObject);
     procedure btnOpenCLIClick(Sender: TObject);
     procedure btnExtraFlagsHelpClick(Sender: TObject);
@@ -86,6 +88,7 @@ begin
     NoSubtitle := cbSemLegenda.ItemIndex;
     Preset := cbPreset.Items[cbPreset.ItemIndex];
     Software := cbSoftware.ItemIndex;
+    VisualizarProcessos := (cbVisualizar.ItemIndex = 1);
   end;
 end;
 
@@ -165,9 +168,10 @@ begin
     cbPreset.Enabled := (cbSoftware.ItemIndex = 0);
     spinProcessos.Value := Ini.ReadInteger('Opções', 'MaximoProcessos', 4);
     edtHandBreakPath.Text := Ini.ReadString('HandBreak', 'Path', ExtractFilePath(Application.ExeName) + 'HandBrakeCLI.exe');
-    edtHandBreakParams.Text := Ini.ReadString('HandBreak', 'Params', '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt-burn "1" -o "#outputfile#"');
+    edtHandBreakParams.Text := Ini.ReadString('HandBreak', 'Params', '-i "#inputfile#" -Z "#preset#" --srt-codeset utf-8 --srt-file "#subtitlefile#" --srt-burn "1" -o "#outputfile#"');
     edtFFMpegPath.Text := Ini.ReadString('FFMPEG', 'Path', ExtractFilePath(Application.ExeName) + 'ffmpeg.exe');
     edtFFMpegParams.Text := Ini.ReadString('FFMPEG', 'Params', '-i "#inputfile#" -c:v libx264 -crf 20 -movflags +faststart -vf subtitles="#subtitlefile#" -c:a aac -b:a 160k -y "#outputfile#"');
+    cbVisualizar.ItemIndex := Ini.ReadInteger('Opções', 'VisualizarP', 0);
     if Ini.ReadString('Opções', 'Visual', 'Windows') = 'Windows' then
       VisualSwitch.State := tssOff
     else
@@ -186,7 +190,7 @@ cbSemLegenda.ItemIndex := 0;
 cbSoftware.ItemIndex := 0;
 spinProcessos.Value := 4;
 edtHandBreakPath.Text := '';
-edtHandBreakParams.Text := '-i "#inputfile#" -Z "#preset#" --srt-file "#subtitlefile#" --srt-burn "1" -o "#outputfile#"';
+edtHandBreakParams.Text := '-i "#inputfile#" -Z "#preset#" --srt-codeset utf-8 --srt-file "#subtitlefile#" --srt-burn "1" -o "#outputfile#"';
 edtFFMpegPath.Text := '';
 edtFFMpegParams.Text := '-i "#inputfile#" -c:v libx264 -crf 20 -movflags +faststart -vf subtitles="#subtitlefile#" -c:a aac -b:a 160k -y "#outputfile#"';
 end;
@@ -201,6 +205,7 @@ begin
     Ini.WriteInteger('Opções', 'SemLegendas', cbSemLegenda.ItemIndex);
     Ini.WriteInteger('Opções', 'Software', cbSoftware.ItemIndex);
     Ini.WriteInteger('Opções', 'MaximoProcessos', spinProcessos.Value);
+    Ini.WriteInteger('Opções', 'VisualizarP', cbVisualizar.ItemIndex);
     Ini.WriteString('HandBreak', 'Path', edtHandBreakPath.Text);
     Ini.WriteString('HandBreak', 'Params', edtHandBreakParams.Text);
     Ini.WriteString('FFMPEG', 'Path', edtFFMpegPath.Text);

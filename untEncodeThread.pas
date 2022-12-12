@@ -15,6 +15,7 @@ type
     FIndex: Integer;
     FStatus: String;
     FGroupId: Integer;
+    CurrentProgress: Integer;
     { Private declarations }
 
     procedure UpdateStatus;
@@ -27,6 +28,8 @@ type
   end;
 
 implementation
+
+uses untPrincipal;
 
 function ExecuteProcess(const FileName, Params: string; Folder: string; WaitUntilTerminated, WaitUntilIdle, RunMinimized: boolean;
   var ErrorCode: integer): boolean;
