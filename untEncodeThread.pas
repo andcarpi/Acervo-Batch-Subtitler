@@ -15,7 +15,7 @@ type
     FIndex: Integer;
     FStatus: String;
     FGroupId: Integer;
-    CurrentProgress: Integer;
+    //CurrentProgress: Integer;
     { Private declarations }
 
     procedure UpdateStatus;

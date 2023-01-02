@@ -152,16 +152,18 @@ begin
   Loaded := False;
   LoadIni;
   ApplyConfig;
-  cklFileTypes.CheckAll(cbChecked);
   frmPrincipal.CheckConfig();
 end;
 
 procedure TfrmConfiguracoes.LoadIni;
 var
-   Ini: TIniFile;
+  Ini: TIniFile;
+  i: Integer;
 begin
   Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.ini' ) );
   try
+    for i := 0 to cklFileTypes.Count-1 do
+      cklFileTypes.Checked[i] := Ini.ReadBool('FileTypes', cklFileTypes.Items[i], True);
     cbPreset.ItemIndex := Ini.ReadInteger('Opções', 'Preset', 5);
     cbSemLegenda.ItemIndex := Ini.ReadInteger('Opções', 'SemLegendas', 0);
     cbSoftware.ItemIndex := Ini.ReadInteger('Opções', 'Software', 0);
@@ -198,9 +200,12 @@ end;
 procedure TfrmConfiguracoes.SaveIni;
 var
    Ini: TIniFile;
+   i: Integer;
 begin
   Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.ini' ) );
   try
+    for i := 0 to cklFileTypes.Count-1 do
+        Ini.WriteBool('FileTypes', cklFileTypes.Items[i], cklFileTypes.Checked[i]);
     Ini.WriteInteger('Opções', 'Preset', cbPreset.ItemIndex);
     Ini.WriteInteger('Opções', 'SemLegendas', cbSemLegenda.ItemIndex);
     Ini.WriteInteger('Opções', 'Software', cbSoftware.ItemIndex);

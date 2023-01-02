@@ -29,7 +29,7 @@ object frmConfiguracoes: TfrmConfiguracoes
       Width = 242
       Height = 89
       Columns = 2
-      ItemHeight = 15
+      ItemHeight = 17
       Items.Strings = (
         'MP4'
         'M4V'

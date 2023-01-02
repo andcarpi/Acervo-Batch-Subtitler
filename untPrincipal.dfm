@@ -4,8 +4,8 @@ object frmPrincipal: TfrmPrincipal
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Encoder de Legenda - AcervoCursos - Dev by @andcarpi'
-  ClientHeight = 552
-  ClientWidth = 624
+  ClientHeight = 551
+  ClientWidth = 620
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

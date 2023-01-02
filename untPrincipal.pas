@@ -334,7 +334,12 @@ var
 begin
   FileList2.Items.Clear;
   List := TStringList.Create;
-  FileSearch(edtSource.Text, '*.mp4', List);   //TODO Arrumar o filtro de arquivos
+
+  for I := 0 to frmConfiguracoes.cklFileTypes.Items.Count-1 do begin
+    if frmConfiguracoes.cklFileTypes.Checked[i] then
+      FileSearch(edtSource.Text, '*.' + LowerCase(frmConfiguracoes.cklFileTypes.Items[i]), List);   //TODO Arrumar o filtro de arquivos
+  end;
+
   lblArquivosEncontrados.Caption := 'Arquivos Encontrados: ' + IntToStr(List.Count);
 
   List.CustomSort(MySortProc);
